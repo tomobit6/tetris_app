@@ -21,8 +21,9 @@ Block blocks[BLOCK_TYPE_COUNT] = {
 // 必ず、基点から配列要素を組み立てる必要有。また、0行目から組み立て必要。
 Block block; // 作業用の空のブロック(ゲームに登場したブロック格納用)  これは他のファイルでは使わない。
 Block *current_block = &block;
+volatile InputType input_flag = INPUT_NONE;
+volatile int block_fixed = 0;
 int block_shape;
-int block_fixed = 0;
 
 pthread_mutex_t block_mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -38,32 +39,37 @@ int main(void)
     {
         block_shape = rand() % BLOCK_TYPE_COUNT;
         init_block(current_block, &blocks[block_shape]);
+
+        pthread_mutex_lock(&block_mutex); // ロック
         block_fixed = 0;
+        pthread_mutex_unlock(&block_mutex); // ロック解除
+
         while (1)
         {
-            pthread_mutex_lock(&block_mutex); // ロック
-            for (int i = 0; i < 4; i++)
-            {
-                int x = current_block->px + current_block->x[i];
-                int y = current_block->py + current_block->y[i];
-                field[y][x] = current_block->symbol;
-            }
-            pthread_mutex_unlock(&block_mutex); // ロック解除
+            // 前回位置削除
+            clear_block(current_block);
 
-            print_screen();
+            // 入力処理
+            handle_input();
 
-            pthread_mutex_lock(&block_mutex); // ロック
+            // 衝突判定
             if (is_collision(current_block))
             {
                 fix_block(current_block);
-                pthread_mutex_unlock(&block_mutex); // ロック解除
+                draw_block(current_block);
+                print_screen();
+                pthread_mutex_lock(&block_mutex); // ロック
                 block_fixed = 1;
+                pthread_mutex_unlock(&block_mutex); // ロック解除
                 break;
             }
-            clear_block(current_block);
-            current_block->py++; // 落下
 
-            pthread_mutex_unlock(&block_mutex); // ロック解除
+            // 自然落下
+            current_block->py++;
+
+            // 描画
+            draw_block(current_block);
+            print_screen();
         }
     }
     return 0;

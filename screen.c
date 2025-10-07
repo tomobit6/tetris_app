@@ -13,6 +13,16 @@ void print_screen()
     usleep(800000);
 }
 
+void draw_block(Block *block)
+{
+    for (int i = 0; i < 4; i++)
+    {
+        int x = current_block->px + current_block->x[i];
+        int y = current_block->py + current_block->y[i];
+        field[y][x] = current_block->symbol;
+    }
+}
+
 void clear_block(Block *block)
 {
     for (int i = 0; i < 4; i++)
