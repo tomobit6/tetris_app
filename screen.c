@@ -4,19 +4,21 @@
 
 void print_screen()
 {
+    printf("\033[1;1H"); // 画面の上塗り
+
     for (int i = 0; i < ROW; i++)
     {
         printf("%s\n", field[i]);
     }
-    usleep(300000);
+    usleep(800000);
 }
 
-void clear_block()
+void clear_block(Block *block)
 {
     for (int i = 0; i < 4; i++)
     {
-        int x = blocks[BLOCK_T].px + blocks[BLOCK_T].x[i];
-        int y = blocks[BLOCK_T].py + blocks[BLOCK_T].y[i];
+        int x = block->px + block->x[i];
+        int y = block->py + block->y[i];
         field[y][x] = ' ';
     }
 }
