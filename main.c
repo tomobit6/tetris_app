@@ -22,8 +22,8 @@ Block blocks[BLOCK_TYPE_COUNT] = {
 Block block; // 作業用の空のブロック(ゲームに登場したブロック格納用)  これは他のファイルでは使わない。
 Block *current_block = &block;
 volatile InputType input_flag = INPUT_NONE;
+volatile int block_fixed = 0;
 int block_shape;
-int block_fixed = 0;
 
 pthread_mutex_t block_mutex = PTHREAD_MUTEX_INITIALIZER;
 

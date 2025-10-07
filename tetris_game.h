@@ -69,8 +69,8 @@ extern char field[ROW][COL];           // 表示用
 */
 extern int block_shape;
 extern Block *current_block;
-extern pthread_mutex_t block_mutex;
-extern int block_fixed;
+extern volatile int block_fixed;
 extern volatile InputType input_flag;
+extern pthread_mutex_t block_mutex;
 
 #endif
