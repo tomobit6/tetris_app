@@ -30,21 +30,36 @@ typedef enum
     BLOCK_TYPE_COUNT
 } BlockType;
 
+typedef enum
+{
+    INPUT_NONE,
+    INPUT_LEFT,
+    INPUT_RIGHT,
+    INPUT_DOWN,
+    INPUT_ROTATE
+} InputType;
+
 /*  関数のプロトタイプ宣言  */
 void init_game();
 void init_block(Block *dest, Block *src);
 void print_screen();
+void draw_block(Block *block);
 void clear_block(Block *block);
 int is_collision(Block *block);
 void fix_block(Block *block);
 void rotate_block(Block *block);
+void rotate_block_reverse(Block *block);
 int can_move(Block *block, int dx, int dy);
+void handle_input();
 /*  スレッド関数プロトタイプ宣言  */
 void *detect_input(void *ptr);
 
 extern Block blocks[BLOCK_TYPE_COUNT]; // 構造体の型の別名BLOCK型の配列変数blocksにenumで作成したマクロを代入
 extern int board[10][10];              // 内部用　純粋なプレイ領域管理。null文字や枠線の管理不要
 extern char field[ROW][COL];           // 表示用
+// 表示用fieldはx = 1~10の配列でゲーム内の盤面管理
+// 内部用boardはx = 0~9の配列でゲーム内の盤面管理
+
 /* 座標
        -y
 　　　  ↑
@@ -56,5 +71,6 @@ extern int block_shape;
 extern Block *current_block;
 extern pthread_mutex_t block_mutex;
 extern int block_fixed;
+extern volatile InputType input_flag;
 
 #endif

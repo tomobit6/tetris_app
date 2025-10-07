@@ -25,6 +25,7 @@ void init_game()
 void init_block(Block *dest, Block *src) // dest = destination：コピー先　　src = source：コピー元
 {
     memcpy(dest, src, sizeof(Block)); // memcpy：メモリ内容をコピーする。配列や構造体をまとめてコピーしたい時に使う。
+    // この3行は構造体配列で初期値定義しているので、必要ないが、後々出現位置を変える場合もあるため、残す
     dest->px = 5;
     dest->py = 0;
     dest->rot = 0;

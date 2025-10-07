@@ -5,52 +5,70 @@
 
 void *detect_input(void *ptr)
 {
+
     for (;;)
     {
+        pthread_mutex_lock(&block_mutex);
+        int bf = !block_fixed;
+        pthread_mutex_unlock(&block_mutex);
         if (kbhit())
         {
             int key = getch();
-
-            pthread_mutex_lock(&block_mutex); // ロック
-            if (key == ' ')
+            if (bf)
             {
-                if (!block_fixed)
+                pthread_mutex_lock(&block_mutex);
+                switch (key)
                 {
-                    clear_block(current_block);  // 先に消さないと、回転前の+が残る
-                    rotate_block(current_block); // current_block自体はポインタ変数。*でポインタが指し示す値
+                case ' ':
+                    input_flag = INPUT_ROTATE;
+                    break;
+                case 75:
+                    input_flag = INPUT_LEFT;
+                    break;
+                case 77:
+                    input_flag = INPUT_RIGHT;
+                    break;
+                case 80:
+                    input_flag = INPUT_DOWN;
+                    break;
+                default:
+                    break;
                 }
+                pthread_mutex_unlock(&block_mutex);
             }
-            else
-            {
-                if (key == 72 || key == 80 || key == 75 || key == 77)
-                {
-                    if (!block_fixed)
-                    {
-                        clear_block(current_block); // 先に消さないと、移動前の+が残る
-                        switch (key)
-                        {
-                        case 80:                                  // 下
-                            while (can_move(current_block, 0, 1)) // 限界まで落とす
-                                current_block->py++;
-                            break;
-                        case 75: // 左
-                            if (can_move(current_block, -1, 0))
-                                current_block->px--;
-                            break;
-                        case 77: // 右
-                            if (can_move(current_block, 1, 0))
-                                current_block->px++;
-                            break;
-                        default:
-                        }
-                    }
-                }
-            }
-            pthread_mutex_unlock(&block_mutex); // ロック解除
         }
         usleep(10000);
     }
     return NULL;
+}
+
+void handle_input()
+{
+    pthread_mutex_lock(&block_mutex); // ロック
+    switch (input_flag)
+    {
+    case INPUT_LEFT:
+        if (can_move(current_block, -1, 0))
+            current_block->px--;
+        break;
+    case INPUT_RIGHT:
+        if (can_move(current_block, 1, 0))
+            current_block->px++;
+        break;
+    case INPUT_DOWN:
+        while (can_move(current_block, 0, 1))
+            current_block->py++;
+        break;
+    case INPUT_ROTATE:
+        rotate_block(current_block);
+        if (!can_move(current_block, 0, 0))      // 回転後に衝突するなら戻す。＋する分を0にして、今現状、領域外に行っているか確かめる
+            rotate_block_reverse(current_block); // 逆回転（未実装なら保存して戻す）
+        break;
+    default:
+        break;
+    }
+    input_flag = INPUT_NONE;            // 処理済み
+    pthread_mutex_unlock(&block_mutex); // ロック解除
 }
 
 void rotate_block(Block *block)
@@ -66,6 +84,18 @@ void rotate_block(Block *block)
     // 反時計回り(90度回転) x' = y    x' = -x
 
     block->rot = (block->rot + 1) % 4;
+}
+
+void rotate_block_reverse(Block *block)
+{
+    for (int i = 0; i < 4; i++)
+    {
+        int old_x = block->x[i];
+        int old_y = block->y[i];
+        block->x[i] = old_y;
+        block->y[i] = -old_x;
+    }
+    block->rot = (block->rot + 3) % 4;
 }
 
 int can_move(Block *block, int dx, int dy)
