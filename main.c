@@ -30,10 +30,11 @@ pthread_mutex_t block_mutex = PTHREAD_MUTEX_INITIALIZER;
 int main(void)
 {
     pthread_t input_key_thread;
-    //  pthread_t screen_thread;
+    pthread_t screen_thread;
     init_game();
 
     pthread_create(&input_key_thread, NULL, detect_input, NULL);
+    pthread_create(&screen_thread, NULL, print_screen, NULL);
 
     for (;;)
     {
@@ -55,21 +56,23 @@ int main(void)
             // 衝突判定
             if (is_collision(current_block))
             {
-                fix_block(current_block);
-                draw_block(current_block);
-                print_screen();
+                fixed_block(current_block);
                 pthread_mutex_lock(&block_mutex); // ロック
                 block_fixed = 1;
                 pthread_mutex_unlock(&block_mutex); // ロック解除
+                usleep(150000);
+                clear_full_lines();
+                usleep(150000);
                 break;
             }
 
             // 自然落下
             current_block->py++;
 
-            // 描画
+            // 表示用配列に書込み
             draw_block(current_block);
-            print_screen();
+
+            usleep(600000);
         }
     }
     return 0;

@@ -1,34 +1,22 @@
 #include <stdio.h>
-#include <unistd.h> // sleep使用
+#include <pthread.h> // スレッド使用
+#include <unistd.h>  // sleep使用
 #include "tetris_game.h"
 
-void print_screen()
+void *print_screen(void *ptr)
 {
-    printf("\033[1;1H"); // 画面の上塗り
-
-    for (int i = 0; i < ROW; i++)
+    for (;;)
     {
-        printf("%s\n", field[i]);
-    }
-    usleep(800000);
-}
+        printf("\033[1;1H"); // 画面の上塗り
 
-void draw_block(Block *block)
-{
-    for (int i = 0; i < 4; i++)
-    {
-        int x = current_block->px + current_block->x[i];
-        int y = current_block->py + current_block->y[i];
-        field[y][x] = current_block->symbol;
-    }
-}
+        pthread_mutex_lock(&block_mutex); // ロック
+        for (int i = 0; i < ROW; i++)
+        {
+            printf("%s\n", field[i]);
+        }
+        pthread_mutex_unlock(&block_mutex); // ロック解除
 
-void clear_block(Block *block)
-{
-    for (int i = 0; i < 4; i++)
-    {
-        int x = block->px + block->x[i];
-        int y = block->py + block->y[i];
-        field[y][x] = ' ';
+        usleep(90000);
     }
+    return NULL;
 }

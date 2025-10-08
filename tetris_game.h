@@ -42,17 +42,18 @@ typedef enum
 /*  関数のプロトタイプ宣言  */
 void init_game();
 void init_block(Block *dest, Block *src);
-void print_screen();
-void draw_block(Block *block);
 void clear_block(Block *block);
+void draw_block(Block *block);
 int is_collision(Block *block);
-void fix_block(Block *block);
+void fixed_block(Block *block);
+void clear_full_lines();
 void rotate_block(Block *block);
 void rotate_block_reverse(Block *block);
 int can_move(Block *block, int dx, int dy);
 void handle_input();
 /*  スレッド関数プロトタイプ宣言  */
 void *detect_input(void *ptr);
+void *print_screen(void *ptr);
 
 extern Block blocks[BLOCK_TYPE_COUNT]; // 構造体の型の別名BLOCK型の配列変数blocksにenumで作成したマクロを代入
 extern int board[10][10];              // 内部用　純粋なプレイ領域管理。null文字や枠線の管理不要
