@@ -1,0 +1,29 @@
+# Makefile
+
+CC := gcc
+CFLAGS := -Wall -fexec-charset=cp932
+
+# 実行可能ファイル名
+EXECUTABLE := main.exe
+
+# ソースファイル
+SOURCES := $(wildcard *.c)
+
+# オブジェクトファイル
+OBJECTS:= $(SOURCES:.c=.o)
+
+all: $(EXECUTABLE)
+
+#実行ファイル生成
+$(EXECUTABLE): $(OBJECTS)
+	$(CC) $(CFLAGS) $^ -o $@
+
+#.C → .Oの規則
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# 削除：オブジェクトファイル、実行ファイル
+clean:
+	del /Q *.o *.exe
+
+.PHONY: all clean
