@@ -82,7 +82,14 @@ void rotate_block(Block *block)
     }
     // 時計回り(90度回転)  x' = -y    y' = x
     // 反時計回り(90度回転) x' = y    x' = -x
+/*
+	[ 0 -1 ]
+	[ 1  0 ]
 
+	これをかけると：
+	x' = 0*x + (-1)*y = -y
+	y' = 1*x +  0*y = x
+*/
     block->rot = (block->rot + 1) % 4;
 }
 
@@ -96,19 +103,4 @@ void rotate_block_reverse(Block *block)
         block->y[i] = -old_x;
     }
     block->rot = (block->rot + 3) % 4;
-}
-
-int can_move(Block *block, int dx, int dy)
-{
-    for (int i = 0; i < 4; i++)
-    {
-        int x = block->px + block->x[i] + dx;
-        int y = block->py + block->y[i] + dy;
-
-        if (x < 1 || x >= 11 || y < 0 || y >= 10 || board[y][x] != 0) // board[y][x] != 0でブロックがあると動けない処理も含まれている
-        {
-            return 0; // 移動できない
-        }
-    }
-    return 1; // 移動できる
 }
