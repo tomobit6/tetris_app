@@ -6,14 +6,14 @@
 
 // 変数定義
 int score = 0;
+int game_over = 0;
 
 void init_game()
 {
-    srand(time(0));
-    system(" cls ");
-
+    system("cls");
     memset(board, 0, sizeof(board)); // boardの0初期化
-	clear_field();
+	game_over = 0;
+    score = 0;
 }
 
 void init_block(Block *dest, Block *src)
@@ -34,8 +34,7 @@ void fixed_block(Block *block)
         int y = block->py + block->y[i];
     	if (y >= 0)
     	{
-        	board[y][x] = 1; // 固定
-        	field[y][x + 1] = SYMBOL;
+        	board[y][x] = block->type + 1; // 固定
     	}
     }
     pthread_mutex_unlock(&block_mutex); // ロック解除
