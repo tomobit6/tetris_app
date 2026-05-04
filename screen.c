@@ -3,76 +3,82 @@
 #include <unistd.h>  // sleep使用
 #include "tetris_game.h"
 
-// 足りない関数 clear_fieldとdraw_boardとdraw_current_block
+// 固定ブロック用
+static const char *colors[] = {
+    CYAN, YELLOW, MAGENTA, GREEN, RED, BLUE, ORANGE
+};
 
 void *print_screen(void *ptr)
 {
     for (;;)
     {
-        printf("\033[1;1H"); // 画面の上塗り
-		
-    	pthread_mutex_lock(&block_mutex);
-    	render_field();
-    	pthread_mutex_unlock(&block_mutex);
-        
-    	for (int i = 0; i < ROW; i++)
+        printf("\033[1;1H"); // カーソル戻す
+
+        pthread_mutex_lock(&block_mutex);
+
+        for (int i = 0; i < BOARD_HEIGHT; i++)
         {
-            printf("%s\n", field[i]);
+            printf("|");
+
+            for (int j = 0; j < BOARD_WIDTH; j++)
+            {
+                int drawn = 0;
+
+                // 落下中ブロック優先
+                if (current_block != NULL)
+                {
+                    for (int k = 0; k < 4; k++)
+                    {
+                        int x = current_block->px + current_block->x[k];
+                        int y = current_block->py + current_block->y[k];
+
+                        if (x == j && y == i)
+                        {
+                            printf("%s%c%s",
+                                   current_block->color,
+                                   SYMBOL,
+                                   RESET);
+                            drawn = 1;
+                            break;
+                        }
+                    }
+                }
+
+                // 固定ブロック
+                if (!drawn)
+                {
+                    if (board[i][j] != 0)
+                    {
+                        printf("%s%c%s",
+                               colors[board[i][j] - 1],
+                               SYMBOL,
+                               RESET);
+                    }
+                    else
+                    {
+                        printf(" ");
+                    }
+                }
+            }
+
+            printf("|\n");
         }
-		printf("\033[%d;1H", ROW + 2);
-		printf("SCORE: %d\n", score);
-		usleep(90000);
+
+        // 下壁
+        for (int i = 0; i < BOARD_WIDTH + 2; i++)
+            printf("-");
+        printf("\n");
+
+        printf("SCORE: %d\n", score);
+
+        pthread_mutex_unlock(&block_mutex);
+
+        usleep(90000);
     }
-    return NULL;
+	return NULL;
 }
 
-void render_field()
-{
-    clear_field(); // 空白+壁
-	draw_board(); // boardの固定ブロック
-    draw_current_block(); // 落下中のブロック
-}
-
-void clear_field()
-{
-    for (int i = 0; i < BOARD_HEIGHT; i++)
-    {
-        memset(field[i], ' ', COL - 1); // 第1:初期化したいメモリ領域の先頭アドレス  第2:セットしたい値(1バイト単位)　第3:セットするバイト数
-        field[i][COL - 1] = '\0';       // 文字列終端
-        field[i][0] = '|';              // 左枠
-        field[i][COL - 2] = '|';        // 右枠
-    }
-    memset(field[ROW - 1], '-', COL - 1);
-    field[ROW - 1][COL - 1] = '\0';
-}
-
-void draw_board()
-{
-    for (int i = 0; i < BOARD_HEIGHT; i++)
-    {
-    	for (int j = 0; j < BOARD_WIDTH; j++)
-    	{
-    		if(board[i][j] != 0)
-    		{
-    			field[i][j + 1] = SYMBOL;
-    		}
-    	}
-    }
-}
-
-void draw_current_block()
-{
-    for (int i = 0; i < 4; i++)
-    {
-        int x = current_block->px + current_block->x[i];
-        int y = current_block->py + current_block->y[i];
-
-        // 範囲チェック（超重要）
-        if (y >= 0 && y < BOARD_HEIGHT &&
-            x >= 0 && x < BOARD_WIDTH)
-        {
-        	// printf("\033[%d;%dH%s%c%s",y + 1, x + 2, current_block->color, SYMBOL,RESET);
-            field[y][x + 1] = SYMBOL;
-        }
-    }
+void print_game_over(){
+    printf("\033[%d;1H", ROW + 3);
+    printf("GAME OVER (r: retry / q: quit)");
 }

@@ -7,8 +7,8 @@
 #define COL 13 // 1列目及び最終列 - 1枠用。最終列はnull文字用  実際10
 #define BOARD_WIDTH (COL - 3)
 #define BOARD_HEIGHT (ROW - 1)
+#define CELL_WIDTH 12  // セル幅
 #define SYMBOL '+'
-/*
 // ブロック色
 #define CYAN    "\033[36m"
 #define YELLOW  "\033[33m"
@@ -16,9 +16,8 @@
 #define GREEN   "\033[32m"
 #define RED     "\033[31m"
 #define BLUE    "\033[34m"
-#define ORANGE "\033[38;5;208m"
-#define RESET   "\033[0m"
-*/
+#define ORANGE  "\033[38;5;208m"
+#define RESET   "\033[0m"       // 色を消す処理。ブロック以外の(例えば壁)の色も変わらないように
 
 typedef struct
 {						// typedefはBlockという名の構造体の型が使えるようにする型定義。つまり、Blockは変数ではない。externは変数の「外部参照」を宣言するため、一緒に使えず、Blockの型を宣言して、これにexternを付けるべき。
@@ -28,7 +27,7 @@ typedef struct
     int py;				// フィールド上の相対y座標
     int type;			// ブロックの種類(I,O,T,S,Z,J,L) ※今のところ用途なし
     int rot;			// 回転状態(0,1,2,3)   0 = 0度   1 = 90度   2 = 180度   3 = 270度
-//	const char *color;  // ブロックの色
+    const char *color;  // ブロックの色
 } Block;
 
 typedef enum
@@ -62,10 +61,7 @@ void clear_full_lines();					// game.c
 void handle_input();						// play.c
 void rotate_block(Block *block);			// play.c
 void rotate_block_reverse(Block *block);	// play.c
-void render_field();						// screen.c
-void clear_field();							// screen.c
-void draw_board();							// screen.c
-void draw_current_block();					// screen.c
+void print_game_over();						// screen.c
 
 
 void handle_input();
@@ -75,8 +71,6 @@ void *print_screen(void *ptr);
 
 extern Block blocks[BLOCK_TYPE_COUNT];          // 構造体の型の別名BLOCK型の配列変数blocksにenumで作成したマクロを代入
 extern int board[BOARD_HEIGHT][BOARD_WIDTH];    // 内部用　純粋なプレイ領域管理。null文字や枠線の管理不要
-extern char field[ROW][COL];                    // 表示用
-// 表示用fieldはx = 1~10の配列でゲーム内の盤面管理
 // 内部用boardはx = 0~9の配列でゲーム内の盤面管理
 
 /* 座標
@@ -92,5 +86,6 @@ extern volatile int block_fixed;
 extern volatile InputType input_flag;
 extern pthread_mutex_t block_mutex;
 extern int score;
+extern int game_over;
 
 #endif
