@@ -32,6 +32,7 @@ pthread_mutex_t block_mutex = PTHREAD_MUTEX_INITIALIZER; // これ１個でい�
 int main(void)
 {
 	srand(time(0));
+	printf("\033[2J"); // 画面全消去
 	
 	init_game();
 	block_shape = rand() % BLOCK_TYPE_COUNT;
@@ -61,29 +62,42 @@ int main(void)
 			pthread_mutex_unlock(&block_mutex);
     	
     		int fall_timer = 0;
+    		int lock_delay = 0;
         	while (1)
         	{
             	// 入力処理 
             	handle_input();
-
+        		
             	// 衝突判定
             	if (is_collision(current_block))
             	{
-                	fixed_block(current_block);
+            		lock_delay += 10000;
             		
-                	pthread_mutex_lock(&block_mutex); // ロック
-                	block_fixed = 1;
-                	pthread_mutex_unlock(&block_mutex); // ロック解除
+    				if (lock_delay >= 200000)
+    				{
+        				fixed_block(current_block);
+    					
+    					pthread_mutex_lock(&block_mutex); // ロック
+                		block_fixed = 1;
+                		pthread_mutex_unlock(&block_mutex); // ロック解除
             		
-                	usleep(150000);
-                	clear_full_lines();
-                	usleep(150000);
-                	break;
+                		usleep(50000);
+                		clear_full_lines();
+                		usleep(50000);
+                		break;
+    				}
             	}
-        		if(fall_timer >= 400000)
+        		else
         		{
-            		// 自然落下
-            		current_block->py++;
+        			lock_delay = 0;
+        		}
+        		if(fall_timer >= 400000)
+    	    	{
+        	    	// 自然落下
+            		if (can_move(current_block, 0, 1))
+    				{
+        				current_block->py++;
+    				}
         			fall_timer = 0;
         		}
             	usleep(10000);

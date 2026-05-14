@@ -70,6 +70,9 @@ void *print_screen(void *ptr)
         printf("\n");
 
         printf("SCORE: %d\n", score);
+    	
+    	// ちらつき防止
+    	fflush(stdout);
 
         pthread_mutex_unlock(&block_mutex);
 

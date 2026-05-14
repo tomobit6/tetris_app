@@ -61,8 +61,6 @@ void handle_input()
         break;
     case INPUT_ROTATE:
         rotate_block(current_block);
-        if (!can_move(current_block, 0, 0))      // 回転後に衝突するなら戻す。＋する分を0にして、今現状、領域外に行っているか確かめる
-            rotate_block_reverse(current_block); // 逆回転（未実装なら保存して戻す）
         break;
     default:
         break;
@@ -73,24 +71,41 @@ void handle_input()
 
 void rotate_block(Block *block)
 {
+	if (block->type == BLOCK_O)
+        return;
+	
     for (int i = 0; i < 4; i++)
     {
         int old_x = block->x[i];
         int old_y = block->y[i];
+
         block->x[i] = -old_y;
         block->y[i] = old_x;
     }
-    // 時計回り(90度回転)  x' = -y    y' = x
-    // 反時計回り(90度回転) x' = y    x' = -x
-/*
-	[ 0 -1 ]
-	[ 1  0 ]
-
-	これをかけると：
-	x' = 0*x + (-1)*y = -y
-	y' = 1*x +  0*y = x
-*/
-    block->rot = (block->rot + 1) % 4;
+	// 正常
+	if (can_move(block, 0, 0)){
+		block->rot = (block->rot + 1) % 4;
+    	return;
+	}
+	
+	// 左キック
+	if (can_move(block, -1, 0))
+	{
+    	block->px--;
+		block->rot = (block->rot + 1) % 4;
+    	return;
+	}
+	
+	// 右キック
+	if (can_move(block, 1, 0))
+	{
+    	block->px++;
+		block->rot = (block->rot + 1) % 4;
+    	return;
+	}
+	
+	// だめなら戻す
+	rotate_block_reverse(block);
 }
 
 void rotate_block_reverse(Block *block)
@@ -104,3 +119,14 @@ void rotate_block_reverse(Block *block)
     }
     block->rot = (block->rot + 3) % 4;
 }
+
+// 時計回り(90度回転)  x' = -y    y' = x
+// 反時計回り(90度回転) x' = y    x' = -x
+/*
+	[ 0 -1 ]
+	[ 1  0 ]
+
+	これをかけると：
+	x' = 0*x + (-1)*y = -y
+	y' = 1*x +  0*y = x
+*/
