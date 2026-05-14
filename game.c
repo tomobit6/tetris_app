@@ -10,7 +10,6 @@ int game_over = 0;
 
 void init_game()
 {
-    system("cls");
     memset(board, 0, sizeof(board)); // boardの0初期化
 	game_over = 0;
     score = 0;
