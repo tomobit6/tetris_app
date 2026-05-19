@@ -4,21 +4,24 @@
 #include "tetris_game.h"
 
 // 固定ブロック用
-static const char *colors[] = {
-    CYAN, YELLOW, MAGENTA, GREEN, RED, BLUE, ORANGE
-};
+static const char *colors[] = { // staticはこのファイルだけが使える変数にする。いわゆるprivate変数
+    CYAN, YELLOW, MAGENTA, GREEN, RED, BLUE, ORANGE};
 
 void *print_screen(void *ptr)
 {
+    char screen[4096];
     for (;;)
     {
-        printf("\033[1;1H"); // カーソル戻す
+        int offset = 0;
+        screen[0] = '\0';
+
+        offset += sprintf(screen + offset, "\033[1;1H"); // カーソル戻す
 
         pthread_mutex_lock(&block_mutex);
 
         for (int i = 0; i < BOARD_HEIGHT; i++)
         {
-            printf("|");
+            offset += sprintf(screen + offset, "|");
 
             for (int j = 0; j < BOARD_WIDTH; j++)
             {
@@ -34,11 +37,12 @@ void *print_screen(void *ptr)
 
                         if (x == j && y == i)
                         {
-                            printf("%s%c%s",
-                                   current_block->color,
-                                   SYMBOL,
-                                   RESET);
-                            drawn = 1;
+                            offset += sprintf(screen + offset,
+                                              "%s%c%s", // 落下中ブロック表示用　実際画面に見える文字は + の1文字だけ。
+                                              current_block->color,
+                                              SYMBOL,
+                                              RESET);
+                            drawn = 1; // このマスすでに描画済み判定用
                             break;
                         }
                     }
@@ -49,39 +53,46 @@ void *print_screen(void *ptr)
                 {
                     if (board[i][j] != 0)
                     {
-                        printf("%s%c%s",
-                               colors[board[i][j] - 1],
-                               SYMBOL,
-                               RESET);
+                        offset += sprintf(screen + offset, // 固定ブロック描画用
+                                          "%s%c%s",        // 色変更、＋、色元に戻す　このRESETないと、これ以降すべてこの色になる
+                                          colors[board[i][j] - 1],
+                                          SYMBOL,
+                                          RESET);
                     }
                     else
                     {
-                        printf(" ");
+                        offset += sprintf(screen + offset, " "); // 空白描画用
                     }
                 }
             }
-
-            printf("|\n");
+            offset += sprintf(screen + offset, "|\n");
         }
 
         // 下壁
         for (int i = 0; i < BOARD_WIDTH + 2; i++)
-            printf("-");
-        printf("\n");
+            offset += sprintf(screen + offset, "-");
+        offset += sprintf(screen + offset, "\n");
 
-        printf("SCORE: %d\n", score);
-    	
-    	// ちらつき防止
-    	fflush(stdout);
-
+        offset += sprintf(screen + offset, "SCORE: %04d\n", score);
         pthread_mutex_unlock(&block_mutex);
 
-        usleep(90000);
+        // ちらつき防止
+        printf("%s", screen);
+        fflush(stdout);
+
+        usleep(50000); // 0.05秒 カクつき調整はここで行う。
     }
-	return NULL;
+    return NULL;
 }
 
-void print_game_over(){
+void show_cursor()
+{
+    printf("\033[?25h");
+}
+
+void print_game_over()
+{
     printf("\033[%d;1H", ROW + 3);
+    printf("\033[K"); // 別文字を再度表示する際残像が残らない
     printf("GAME OVER (r: retry / q: quit)");
 }
