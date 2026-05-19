@@ -71,9 +71,9 @@ void handle_input()
 
 void rotate_block(Block *block)
 {
-	if (block->type == BLOCK_O)
+    if (block->type == BLOCK_O)
         return;
-	
+
     for (int i = 0; i < 4; i++)
     {
         int old_x = block->x[i];
@@ -82,30 +82,31 @@ void rotate_block(Block *block)
         block->x[i] = -old_y;
         block->y[i] = old_x;
     }
-	// 正常
-	if (can_move(block, 0, 0)){
-		block->rot = (block->rot + 1) % 4;
-    	return;
-	}
-	
-	// 左キック
-	if (can_move(block, -1, 0))
-	{
-    	block->px--;
-		block->rot = (block->rot + 1) % 4;
-    	return;
-	}
-	
-	// 右キック
-	if (can_move(block, 1, 0))
-	{
-    	block->px++;
-		block->rot = (block->rot + 1) % 4;
-    	return;
-	}
-	
-	// だめなら戻す
-	rotate_block_reverse(block);
+    // 正常
+    if (can_move(block, 0, 0))
+    {
+        block->rot = (block->rot + 1) % 4;
+        return;
+    }
+
+    // 左キック
+    if (can_move(block, -1, 0))
+    {
+        block->px--;
+        block->rot = (block->rot + 1) % 4;
+        return;
+    }
+
+    // 右キック
+    if (can_move(block, 1, 0))
+    {
+        block->px++;
+        block->rot = (block->rot + 1) % 4;
+        return;
+    }
+
+    // だめなら戻す
+    rotate_block_reverse(block);
 }
 
 void rotate_block_reverse(Block *block)
@@ -123,10 +124,10 @@ void rotate_block_reverse(Block *block)
 // 時計回り(90度回転)  x' = -y    y' = x
 // 反時計回り(90度回転) x' = y    x' = -x
 /*
-	[ 0 -1 ]
-	[ 1  0 ]
+    [ 0 -1 ]
+    [ 1  0 ]
 
-	これをかけると：
-	x' = 0*x + (-1)*y = -y
-	y' = 1*x +  0*y = x
+    これをかけると：
+    x' = 0*x + (-1)*y = -y
+    y' = 1*x +  0*y = x
 */
