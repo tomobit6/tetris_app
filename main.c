@@ -25,13 +25,14 @@ Block block; // 作業用の空のブロック(ゲームに登場したブロッ
 Block *current_block = &block;
 volatile InputType input_flag = INPUT_NONE;
 volatile int block_fixed = 0;
+volatile int paused = 0;
 int block_shape;
 
 pthread_mutex_t block_mutex = PTHREAD_MUTEX_INITIALIZER; // これ１個でいいのか？
 
 int main(void)
 {
-	atexit(show_cursor);
+	atexit(show_cursor); // プログラム終了時に呼ぶ関数atexit(関数名) カーソル再表示
 	printf("\033[?25l"); // カーソル非表示
 	printf("\033[2J");	 // 画面全消去
 
@@ -70,6 +71,13 @@ int main(void)
 			{
 				// 入力処理
 				handle_input();
+
+				// ポーズ
+				if (paused)
+				{
+					usleep(10000);
+					continue;
+				}
 
 				// 衝突判定
 				if (is_collision(current_block))
@@ -118,16 +126,15 @@ int main(void)
 			{
 				char c = getch();
 				if (c == 'r')
-					break; // リトライ
-				if (c == 'q')
 				{
-					printf("\033[?25h");
-					return 0; // 終了
+					clear_message(ROW + 3);
+					break; // リトライ
 				}
+				if (c == 'q')
+					return 0; // 終了
 			}
 			usleep(10000);
 		}
 	}
-	printf("\033[?25h");
 	return 0;
 }

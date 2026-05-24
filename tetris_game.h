@@ -50,7 +50,8 @@ typedef enum
     INPUT_LEFT,
     INPUT_RIGHT,
     INPUT_DOWN,
-    INPUT_ROTATE
+    INPUT_ROTATE,
+    INPUT_PAUSE
 } InputType;
 
 /*  関数のプロトタイプ宣言  */
@@ -65,6 +66,7 @@ void rotate_block(Block *block);            // play.c
 void rotate_block_reverse(Block *block);    // play.c
 void show_cursor();                         // screen.c
 void print_game_over();                     // screen.c
+void clear_message(int row);                // screen.c
 /*  スレッド関数プロトタイプ宣言  */
 void *detect_input(void *ptr); // play.c
 void *print_screen(void *ptr); // screen.c
@@ -84,6 +86,7 @@ extern int block_shape;
 extern Block *current_block;
 extern volatile int block_fixed;
 extern volatile InputType input_flag;
+extern volatile int paused;
 extern pthread_mutex_t block_mutex;
 extern int score;
 extern int game_over;

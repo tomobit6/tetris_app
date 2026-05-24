@@ -14,28 +14,36 @@ void *detect_input(void *ptr)
         if (kbhit())
         {
             int key = getch();
-            if (bf)
+            pthread_mutex_lock(&block_mutex);
+            switch (key)
             {
-                pthread_mutex_lock(&block_mutex);
-                switch (key)
+            case 'p':
+                input_flag = INPUT_PAUSE;
+                break;
+            default:
+                if (bf)
                 {
-                case ' ':
-                    input_flag = INPUT_ROTATE;
-                    break;
-                case 75:
-                    input_flag = INPUT_LEFT;
-                    break;
-                case 77:
-                    input_flag = INPUT_RIGHT;
-                    break;
-                case 80:
-                    input_flag = INPUT_DOWN;
-                    break;
-                default:
-                    break;
+                    switch (key)
+                    {
+                    case ' ':
+                        input_flag = INPUT_ROTATE;
+                        break;
+                    case 75:
+                        input_flag = INPUT_LEFT;
+                        break;
+                    case 77:
+                        input_flag = INPUT_RIGHT;
+                        break;
+                    case 80:
+                        input_flag = INPUT_DOWN;
+                        break;
+                    default:
+                        break;
+                    }
                 }
-                pthread_mutex_unlock(&block_mutex);
+                break;
             }
+            pthread_mutex_unlock(&block_mutex);
         }
         usleep(10000);
     }
@@ -45,6 +53,14 @@ void *detect_input(void *ptr)
 void handle_input()
 {
     pthread_mutex_lock(&block_mutex); // ロック
+    // pause中は解除キーだけ許可　pause以外は捨てる
+    if (paused && input_flag != INPUT_PAUSE)
+    {
+        input_flag = INPUT_NONE;
+        pthread_mutex_unlock(&block_mutex);
+        return;
+    }
+
     switch (input_flag)
     {
     case INPUT_LEFT:
@@ -61,6 +77,9 @@ void handle_input()
         break;
     case INPUT_ROTATE:
         rotate_block(current_block);
+        break;
+    case INPUT_PAUSE:
+        paused = !paused;
         break;
     default:
         break;
