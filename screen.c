@@ -21,7 +21,7 @@ void *print_screen(void *ptr)
 
         for (int i = 0; i < BOARD_HEIGHT; i++)
         {
-            offset += sprintf(screen + offset, "|");
+            offset += sprintf(screen + offset, "|"); // screenのバッファをoffset分進めた箇所からscreenに代入。screenに"|\0"が入る。sprintfは文字数を返す。つまり1
 
             for (int j = 0; j < BOARD_WIDTH; j++)
             {
@@ -76,8 +76,19 @@ void *print_screen(void *ptr)
         offset += sprintf(screen + offset, "SCORE: %04d\n", score);
         pthread_mutex_unlock(&block_mutex);
 
+        // ポーズ画面
+        offset += sprintf(screen + offset, "\033[%d;1H", ROW + 2);
+        if (paused)
+        {
+            offset += sprintf(screen + offset, "=== PAUSED ===");
+        }
+        else
+        {
+            offset += sprintf(screen + offset, "\033[K");
+        }
+
         // ちらつき防止
-        printf("%s", screen);
+        printf("%s", screen); // screenにため込んだバッファを一気に描画
         fflush(stdout);
 
         usleep(50000); // 0.05秒 カクつき調整はここで行う。
@@ -92,7 +103,12 @@ void show_cursor()
 
 void print_game_over()
 {
-    printf("\033[%d;1H", ROW + 3);
-    printf("\033[K"); // 別文字を再度表示する際残像が残らない
+    clear_message(ROW + 3);
     printf("GAME OVER (r: retry / q: quit)");
+}
+
+void clear_message(int row)
+{
+    printf("\033[%d;1H", row);
+    printf("\033[K"); // 別文字を再表示する際残像が残らない
 }
