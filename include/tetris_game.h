@@ -1,7 +1,13 @@
 #ifndef TETRIS_GAME_H
 #define TETRIS_GAME_H
 
-#include <pthread.h> // mutex使用(各ファイルスレッド使用)
+#include <stdio.h>
+#include <stdlib.h>  // system使用 rand,srand使用
+#include <string.h>  // memset,memcpy使用
+#include <unistd.h>  // sleep使用
+#include <time.h>    // time使用
+#include <conio.h>   // kbhit,getch使用
+#include <pthread.h> // スレッド,mutex使用(各ファイルスレッド使用)
 
 #define ROW 11 // 最後行枠用。上位2行ゲームオーバー用　　　　　 実際10
 #define COL 13 // 1列目及び最終列 - 1枠用。最終列はnull文字用  実際10
@@ -47,26 +53,45 @@ typedef enum
 typedef enum
 {
     INPUT_NONE,
+
+    // プレイ操作
     INPUT_LEFT,
     INPUT_RIGHT,
     INPUT_DOWN,
     INPUT_ROTATE,
-    INPUT_PAUSE
+
+    // システム操作
+    INPUT_PAUSE,
+    INPUT_QUIT,
+    INPUT_RESUME
 } InputType;
 
+typedef enum
+{
+    STATE_PLAYING,
+    STATE_PAUSED,
+    STATE_GAMEOVER
+} GameState;
+
 /*  関数のプロトタイプ宣言  */
-void init_game();                           // game.c
-void init_block(Block *dest, Block *src);   // game.c
-int can_move(Block *block, int dx, int dy); // game.c
-int is_collision(Block *block);             // game.c
-void fixed_block(Block *block);             // game.c
-void clear_full_lines();                    // game.c
-void handle_input();                        // play.c
-void rotate_block(Block *block);            // play.c
-void rotate_block_reverse(Block *block);    // play.c
-void show_cursor();                         // screen.c
-void print_game_over();                     // screen.c
-void clear_message(int row);                // screen.c
+void init_game();                                  // game.c
+void init_block(Block *dest, Block *src);          // game.c
+int can_move(Block *block, int dx, int dy);        // game.c
+int update_game(int *fall_timer, int *lock_delay); // game.c
+int is_collision(Block *block);                    // game.c
+void fixed_block(Block *block);                    // game.c
+void clear_full_lines();                           // game.c
+void update_ranking(int score);                    // game.c
+void handle_input();                               // play.c
+void rotate_block(Block *block);                   // play.c
+void rotate_block_reverse(Block *block);           // play.c
+void draw_box(char *screen, int *offset,           // screen.c
+              int x, int y,
+              int width, int height);
+void draw_pause_box(char *screen, int *offset);    // screen.c
+void draw_gameover_box(char *screen, int *offset); // screen.c
+void show_cursor();                                // screen.c
+void clear_message(int row);                       // screen.c
 /*  スレッド関数プロトタイプ宣言  */
 void *detect_input(void *ptr); // play.c
 void *print_screen(void *ptr); // screen.c
@@ -86,9 +111,8 @@ extern int block_shape;
 extern Block *current_block;
 extern volatile int block_fixed;
 extern volatile InputType input_flag;
-extern volatile int paused;
+extern volatile GameState game_state;
 extern pthread_mutex_t block_mutex;
 extern int score;
-extern int game_over;
-
+extern int high_scores[3];
 #endif

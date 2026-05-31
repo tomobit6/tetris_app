@@ -1,9 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h> // system使用
-#include <string.h> // memset使用
-#include <unistd.h> // sleep使用
-#include <time.h>	// time使用
-#include <conio.h>	// getch使用
 #include "tetris_game.h"
 
 int board[BOARD_HEIGHT][BOARD_WIDTH];
@@ -25,7 +19,7 @@ Block block; // 作業用の空のブロック(ゲームに登場したブロッ
 Block *current_block = &block;
 volatile InputType input_flag = INPUT_NONE;
 volatile int block_fixed = 0;
-volatile int paused = 0;
+volatile GameState game_state = STATE_PLAYING;
 int block_shape;
 
 pthread_mutex_t block_mutex = PTHREAD_MUTEX_INITIALIZER; // これ１個でいいのか？
@@ -51,14 +45,17 @@ int main(void)
 	while (1)
 	{
 		init_game();
-		while (!game_over)
+		game_state = STATE_PLAYING;
+
+		while (1)
 		{
 			block_shape = rand() % BLOCK_TYPE_COUNT;
 			init_block(current_block, &blocks[block_shape]);
 
 			if (!can_move(current_block, 0, 0))
 			{
-				game_over = 1;
+				game_state = STATE_GAMEOVER;
+				update_ranking(score);
 				break; // ゲームループ終了
 			}
 			pthread_mutex_lock(&block_mutex);
@@ -67,72 +64,35 @@ int main(void)
 
 			int fall_timer = 0;
 			int lock_delay = 0;
-			while (1)
+			int block_finished = 0;
+			while (!block_finished)
 			{
 				// 入力処理
 				handle_input();
 
-				// ポーズ
-				if (paused)
+				// ゲーム状態管理
+				switch (game_state)
 				{
+				case STATE_PLAYING:
+					block_finished = update_game(&fall_timer, &lock_delay); // 0なら落下中　1ならブロック固定完了
+					break;
+				case STATE_PAUSED:
 					usleep(10000);
-					continue;
+					break;
+				case STATE_GAMEOVER:	// 今は使ってない。ただ強制リスタートや時間切れ。などで使用するかも。
+					block_finished = 1; // ブロック処理強制終了
+					break;
 				}
-
-				// 衝突判定
-				if (is_collision(current_block))
-				{
-					lock_delay += 10000; // 0.01秒
-
-					if (lock_delay >= LOCK_DELAY) // 衝突後固定までの猶予 衝突判定してから後19回横移動のキーを受け取るループ回る
-					{
-						fixed_block(current_block);
-
-						pthread_mutex_lock(&block_mutex); // ロック
-						block_fixed = 1;
-						pthread_mutex_unlock(&block_mutex); // ロック解除
-
-						usleep(50000);
-						clear_full_lines();
-						usleep(50000);
-						break;
-					}
-				}
-				else
-				{
-					lock_delay = 0;
-				}
-				if (fall_timer >= FALL_SPEED)
-				{
-					// 自然落下
-					if (can_move(current_block, 0, 1))
-					{
-						current_block->py++;
-					}
-					fall_timer = 0;
-				}
-				usleep(10000);
-				fall_timer += 10000;
+			}
+			if (game_state == STATE_GAMEOVER)
+			{
+				break;
 			}
 		}
-
-		// ===== GAME OVER表示 =====
-		print_game_over();
-
-		// ===== 入力待ち =====
-		while (1)
+		// ===== GAME OVER待機 =====
+		while (game_state == STATE_GAMEOVER)
 		{
-			if (kbhit())
-			{
-				char c = getch();
-				if (c == 'r')
-				{
-					clear_message(ROW + 3);
-					break; // リトライ
-				}
-				if (c == 'q')
-					return 0; // 終了
-			}
+			handle_input();
 			usleep(10000);
 		}
 	}

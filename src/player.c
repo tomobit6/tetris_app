@@ -1,6 +1,3 @@
-#include <stdio.h>
-#include <conio.h>  // kbhit,getch使用
-#include <unistd.h> // sleep使用
 #include "tetris_game.h"
 
 void *detect_input(void *ptr)
@@ -19,6 +16,12 @@ void *detect_input(void *ptr)
             {
             case 'p':
                 input_flag = INPUT_PAUSE;
+                break;
+            case 'q':
+                input_flag = INPUT_QUIT;
+                break;
+            case 'r':
+                input_flag = INPUT_RESUME;
                 break;
             default:
                 if (bf)
@@ -53,35 +56,62 @@ void *detect_input(void *ptr)
 void handle_input()
 {
     pthread_mutex_lock(&block_mutex); // ロック
-    // pause中は解除キーだけ許可　pause以外は捨てる
-    if (paused && input_flag != INPUT_PAUSE)
+    switch (game_state)
     {
-        input_flag = INPUT_NONE;
-        pthread_mutex_unlock(&block_mutex);
-        return;
-    }
+    case STATE_PLAYING:
+        switch (input_flag)
+        {
+        case INPUT_LEFT:
+            if (can_move(current_block, -1, 0))
+                current_block->px--;
+            break;
+        case INPUT_RIGHT:
+            if (can_move(current_block, 1, 0))
+                current_block->px++;
+            break;
+        case INPUT_DOWN:
+            while (can_move(current_block, 0, 1))
+                current_block->py++;
+            break;
+        case INPUT_ROTATE:
+            rotate_block(current_block);
+            break;
+        case INPUT_PAUSE:
+            game_state = STATE_PAUSED;
+            break;
 
-    switch (input_flag)
-    {
-    case INPUT_LEFT:
-        if (can_move(current_block, -1, 0))
-            current_block->px--;
+        default:
+            break;
+        }
         break;
-    case INPUT_RIGHT:
-        if (can_move(current_block, 1, 0))
-            current_block->px++;
+    case STATE_PAUSED:
+        switch (input_flag)
+        {
+        case INPUT_RESUME:
+            game_state = STATE_PLAYING;
+            break;
+        case INPUT_QUIT:
+            game_state = STATE_GAMEOVER;
+            break;
+        default:
+            break;
+        }
         break;
-    case INPUT_DOWN:
-        while (can_move(current_block, 0, 1))
-            current_block->py++;
-        break;
-    case INPUT_ROTATE:
-        rotate_block(current_block);
-        break;
-    case INPUT_PAUSE:
-        paused = !paused;
-        break;
-    default:
+    case STATE_GAMEOVER:
+        switch (input_flag)
+        {
+        case INPUT_RESUME:
+            init_game();
+            game_state = STATE_PLAYING;
+            break;
+
+        case INPUT_QUIT:
+            exit(0);
+            break;
+
+        default:
+            break;
+        }
         break;
     }
     input_flag = INPUT_NONE;            // 処理済み

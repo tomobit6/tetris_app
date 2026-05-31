@@ -1,17 +1,12 @@
-#include <stdio.h>
-#include <stdlib.h> // system使用 rand,srand使用
-#include <string.h> // memset,memcpy使用
-#include <time.h>   // time使用
 #include "tetris_game.h"
 
 // 変数定義
 int score = 0;
-int game_over = 0;
+int high_scores[3] = {0};
 
 void init_game()
 {
     memset(board, 0, sizeof(board)); // boardの0初期化
-    game_over = 0;
     score = 0;
 }
 
@@ -39,6 +34,46 @@ int can_move(Block *block, int dx, int dy)
         }
     }
     return 1; // 移動できる
+}
+
+int update_game(int *fall_timer, int *lock_delay)
+{
+    // 衝突判定
+    if (is_collision(current_block))
+    {
+        *lock_delay += 10000; // 0.01秒
+
+        if (*lock_delay >= LOCK_DELAY) // 衝突後固定までの猶予 衝突判定してから後19回横移動のキーを受け取るループ回る
+        {
+            fixed_block(current_block);
+
+            pthread_mutex_lock(&block_mutex); // ロック
+            block_fixed = 1;
+            pthread_mutex_unlock(&block_mutex); // ロック解除
+
+            usleep(50000);
+            clear_full_lines();
+            usleep(50000);
+            return 1;
+        }
+    }
+    else
+    {
+        *lock_delay = 0;
+    }
+    if (*fall_timer >= FALL_SPEED)
+    {
+        // 自然落下
+        if (can_move(current_block, 0, 1))
+        {
+            current_block->py++;
+        }
+        *fall_timer = 0;
+    }
+    usleep(10000);
+    *fall_timer += 10000;
+
+    return 0;
 }
 
 int is_collision(Block *block)
@@ -116,4 +151,23 @@ void clear_full_lines()
         break;
     }
     pthread_mutex_unlock(&block_mutex); // ロック解除
+}
+
+void update_ranking(int score)
+{
+    if (score > high_scores[0])
+    {
+        high_scores[2] = high_scores[1];
+        high_scores[1] = high_scores[0];
+        high_scores[0] = score;
+    }
+    else if (score > high_scores[1])
+    {
+        high_scores[2] = high_scores[1];
+        high_scores[1] = score;
+    }
+    else if (score > high_scores[2])
+    {
+        high_scores[2] = score;
+    }
 }
