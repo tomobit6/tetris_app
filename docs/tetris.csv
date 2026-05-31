@@ -1,0 +1,29 @@
+パス名,モジュール名,種類,総ステップ数,実ステップ数,コメント[％]
+"C:\Users\koten\Cprogram\tetris\game.c","モジュール外",c,6,3,17.8
+"C:\Users\koten\Cprogram\tetris\game.c","void init_game",c,6,5,21.8
+"C:\Users\koten\Cprogram\tetris\game.c","void init_block",c,9,7,37.6
+"C:\Users\koten\Cprogram\tetris\game.c","int can_move",c,17,15,25.6
+"C:\Users\koten\Cprogram\tetris\game.c","int update_game",c,40,33,19.5
+"C:\Users\koten\Cprogram\tetris\game.c","int is_collision",c,15,13,27.1
+"C:\Users\koten\Cprogram\tetris\game.c","void fixed_block",c,15,14,43.7
+"C:\Users\koten\Cprogram\tetris\game.c","void clear_full_lines",c,47,43,36.6
+"C:\Users\koten\Cprogram\tetris\game.c","void update_ranking",c,18,18,0.0
+"C:\Users\koten\Cprogram\tetris\main.c","モジュール外",c,26,18,44.9
+"C:\Users\koten\Cprogram\tetris\main.c","int main",c,74,62,23.3
+"C:\Users\koten\Cprogram\tetris\player.c","モジュール外",c,2,1,0.0
+"C:\Users\koten\Cprogram\tetris\player.c","void *detect_input",c,53,51,0.0
+"C:\Users\koten\Cprogram\tetris\player.c","void handle_input",c,65,61,2.9
+"C:\Users\koten\Cprogram\tetris\player.c","void rotate_block",c,40,30,8.3
+"C:\Users\koten\Cprogram\tetris\player.c","void rotate_block_reverse",c,22,11,44.8
+"C:\Users\koten\Cprogram\tetris\screen.c","モジュール外",c,6,3,50.0
+"C:\Users\koten\Cprogram\tetris\screen.c","void *print_screen",c,91,75,22.2
+"C:\Users\koten\Cprogram\tetris\screen.c","void draw_box",c,32,28,1.8
+"C:\Users\koten\Cprogram\tetris\screen.c","void draw_pause_box",c,16,12,9.1
+"C:\Users\koten\Cprogram\tetris\screen.c","void draw_gameover_box",c,24,22,0.0
+"C:\Users\koten\Cprogram\tetris\screen.c","void show_cursor",c,5,4,0.0
+"C:\Users\koten\Cprogram\tetris\screen.c","void clear_message",c,5,5,38.8
+"C:\Users\koten\Cprogram\tetris\tetris_game.h","モジュール外",h,118,92,40.4
+全ステップ数, , ,752,626,23.9
+
+クラス数,0
+モジュール数,19

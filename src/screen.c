@@ -1,6 +1,3 @@
-#include <stdio.h>
-#include <pthread.h> // スレッド使用
-#include <unistd.h>  // sleep使用
 #include "tetris_game.h"
 
 // 固定ブロック用
@@ -9,12 +6,13 @@ static const char *colors[] = { // staticはこのファイルだけが使える
 
 void *print_screen(void *ptr)
 {
-    char screen[4096];
+    char screen[16384];
     for (;;)
     {
         int offset = 0;
-        screen[0] = '\0';
+        screen[0] = '\0'; // Cの文字列は'\0'が来るまでを文字列として扱う。１要素目のみ初期化で十分。
 
+        offset += sprintf(screen + offset, "\033[2J");   // 全消去
         offset += sprintf(screen + offset, "\033[1;1H"); // カーソル戻す
 
         pthread_mutex_lock(&block_mutex);
@@ -78,33 +76,100 @@ void *print_screen(void *ptr)
 
         // ポーズ画面
         offset += sprintf(screen + offset, "\033[%d;1H", ROW + 2);
-        if (paused)
+        switch (game_state)
         {
-            offset += sprintf(screen + offset, "=== PAUSED ===");
+        case STATE_PAUSED:
+            draw_pause_box(screen, &offset);
+            break;
+        case STATE_GAMEOVER:
+            draw_gameover_box(screen, &offset);
+            break;
+        default:
+            break;
         }
-        else
-        {
-            offset += sprintf(screen + offset, "\033[K");
-        }
-
         // ちらつき防止
         printf("%s", screen); // screenにため込んだバッファを一気に描画
         fflush(stdout);
-
         usleep(50000); // 0.05秒 カクつき調整はここで行う。
     }
     return NULL;
 }
 
+void draw_box(char *screen, int *offset, int x, int y,
+              int width, int height)
+{
+    // 上
+    *offset += sprintf(screen + *offset,
+                       "\033[%d;%dH+", y, x);
+    for (int i = 0; i < width - 2; i++)
+    {
+        *offset += sprintf(screen + *offset, "-");
+    }
+    *offset += sprintf(screen + *offset, "+");
+    // 中
+    for (int row = 1; row < height - 1; row++)
+    {
+        *offset += sprintf(screen + *offset,
+                           "\033[%d;%dH|", y + row, x);
+        for (int col = 0; col < width - 2; col++)
+        {
+            *offset += sprintf(screen + *offset, " ");
+        }
+        *offset += sprintf(screen + *offset, "|");
+    }
+    // 下
+    *offset += sprintf(screen + *offset,
+                       "\033[%d;%dH+", y + height - 1, x);
+    for (int i = 0; i < width - 2; i++)
+    {
+        *offset += sprintf(screen + *offset, "-");
+    }
+    *offset += sprintf(screen + *offset, "+");
+}
+
+void draw_pause_box(char *screen, int *offset)
+{
+    int x = 8;
+    int y = 5;
+    draw_box(screen, offset, x, y, 22, 7); // (x,yは座標5行目,8列目から描画)
+
+    *offset += sprintf(screen + *offset,
+                       "\033[%d;%dHPAUSED", y + 1, x + 7);
+
+    *offset += sprintf(screen + *offset,
+                       "\033[%d;%dHr : RESUME", y + 3, x + 3);
+
+    *offset += sprintf(screen + *offset,
+                       "\033[%d;%dHq : QUIT", y + 4, x + 3);
+}
+
+void draw_gameover_box(char *screen, int *offset)
+{
+    int x = 6;
+    int y = 3;
+
+    draw_box(screen, offset, x, y, 24, 12);
+    *offset += sprintf(screen + *offset,
+                       "\033[%d;%dHGAME OVER", y + 1, x + 6);
+    *offset += sprintf(screen + *offset,
+                       "\033[%d;%dHSCORE : %04d", y + 3, x + 3, score);
+    *offset += sprintf(screen + *offset,
+                       "\033[%d;%dHRANKING", y + 5, x + 3);
+    *offset += sprintf(screen + *offset,
+                       "\033[%d;%dH1. %04d", y + 6, x + 3, high_scores[0]);
+    *offset += sprintf(screen + *offset,
+                       "\033[%d;%dH2. %04d", y + 7, x + 3, high_scores[1]);
+    *offset += sprintf(screen + *offset,
+                       "\033[%d;%dH3. %04d", y + 8, x + 3, high_scores[2]);
+    *offset += sprintf(screen + *offset,
+                       "\033[%d;%dHr : RETRY", y + 10, x + 3);
+    *offset += sprintf(screen + *offset,
+                       "\033[%d;%dHq : QUIT", y + 11, x + 3);
+}
+
 void show_cursor()
 {
     printf("\033[?25h");
-}
-
-void print_game_over()
-{
-    clear_message(ROW + 3);
-    printf("GAME OVER (r: retry / q: quit)");
 }
 
 void clear_message(int row)
