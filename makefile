@@ -1,7 +1,7 @@
 # Makefile
 
 CC := gcc
-CFLAGS := -Wall -fexec-charset=cp932 -Iinclude
+CFLAGS := -Wall -fexec-charset=cp932 -Iinclude -MMD -MP
 
 # 実行可能ファイル名
 EXECUTABLE := tetris.exe
@@ -11,6 +11,9 @@ SOURCES := $(wildcard src/*.c)
 
 # オブジェクトファイル
 OBJECTS:= $(SOURCES:.c=.o)
+
+# .依存関係ファイル一覧
+DEPS :=$(OBJECTS:.o=.d)
 
 all: $(EXECUTABLE)
 
@@ -24,6 +27,10 @@ $(EXECUTABLE): $(OBJECTS)
 
 # 削除：オブジェクトファイル、実行ファイル
 clean:
-	del /Q *.o *.exe
+	del /Q src/*.o
+	del /Q $(EXECUTABLE)
+
+# 依存関係ファイル読込
+-include $(DEPS)
 
 .PHONY: all clean
