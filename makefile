@@ -1,13 +1,13 @@
 # Makefile
 
 CC := gcc
-CFLAGS := -Wall -fexec-charset=cp932
+CFLAGS := -Wall -fexec-charset=cp932 -Iinclude
 
 # 実行可能ファイル名
-EXECUTABLE := main.exe
+EXECUTABLE := tetris.exe
 
 # ソースファイル
-SOURCES := $(wildcard *.c)
+SOURCES := $(wildcard src/*.c)
 
 # オブジェクトファイル
 OBJECTS:= $(SOURCES:.c=.o)

@@ -12,7 +12,7 @@ void *print_screen(void *ptr)
         int offset = 0;
         screen[0] = '\0'; // Cの文字列は'\0'が来るまでを文字列として扱う。１要素目のみ初期化で十分。
 
-        offset += sprintf(screen + offset, "\033[2J");   // 全消去
+        // offset += sprintf(screen + offset, "\033[2J");   // 全消去
         offset += sprintf(screen + offset, "\033[1;1H"); // カーソル戻す
 
         pthread_mutex_lock(&block_mutex);
