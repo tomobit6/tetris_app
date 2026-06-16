@@ -55,6 +55,9 @@ int main(void)
 			if (!can_move(current_block, 0, 0))
 			{
 				game_state = STATE_GAMEOVER;
+				Beep(500, 20);
+				Beep(700, 20);
+				Beep(1000, 50);
 				update_ranking(score);
 				break; // ゲームループ終了
 			}
