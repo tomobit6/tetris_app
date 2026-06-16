@@ -8,8 +8,9 @@
 #include <time.h>    // time使用
 #include <conio.h>   // kbhit,getch使用
 #include <pthread.h> // スレッド,mutex使用(各ファイルスレッド使用)
+#include <windows.h> // Beep使用
 
-#define ROW 11 // 最後行枠用。上位2行ゲームオーバー用　　　　　 実際10
+#define ROW 14 // 最後行枠用。上位2行ゲームオーバー用　　　　　 実際13
 #define COL 13 // 1列目及び最終列 - 1枠用。最終列はnull文字用  実際10
 #define BOARD_WIDTH (COL - 3)
 #define BOARD_HEIGHT (ROW - 1)

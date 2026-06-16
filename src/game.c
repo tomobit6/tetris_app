@@ -46,7 +46,6 @@ int update_game(int *fall_timer, int *lock_delay)
         if (*lock_delay >= LOCK_DELAY) // 衝突後固定までの猶予 衝突判定してから後19回横移動のキーを受け取るループ回る
         {
             fixed_block(current_block);
-
             pthread_mutex_lock(&block_mutex); // ロック
             block_fixed = 1;
             pthread_mutex_unlock(&block_mutex); // ロック解除
@@ -139,15 +138,19 @@ void clear_full_lines()
     {
     case 1:
         score += 100;
+        Beep(1000, 50);
         break;
     case 2:
         score += 300;
+        Beep(1200, 80);
         break;
     case 3:
         score += 500;
+        Beep(1400, 120);
         break;
     case 4:
         score += 800;
+        Beep(1800, 200);
         break;
     }
     pthread_mutex_unlock(&block_mutex); // ロック解除

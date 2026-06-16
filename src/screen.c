@@ -74,8 +74,7 @@ void *print_screen(void *ptr)
         offset += sprintf(screen + offset, "SCORE: %04d\n", score);
         pthread_mutex_unlock(&block_mutex);
 
-        // ポーズ画面
-        offset += sprintf(screen + offset, "\033[%d;1H", ROW + 2);
+        offset += sprintf(screen + offset, "\033[1;1H");
         switch (game_state)
         {
         case STATE_PAUSED:
@@ -129,42 +128,41 @@ void draw_box(char *screen, int *offset, int x, int y,
 
 void draw_pause_box(char *screen, int *offset)
 {
-    int x = 8;
-    int y = 5;
-    draw_box(screen, offset, x, y, 22, 7); // (x,yは座標5行目,8列目から描画)
+    int x = 1;
+    int y = 1;
+    draw_box(screen, offset, x, y, BOARD_WIDTH + 2, BOARD_HEIGHT + 1); // BOARD_WIDTH + 2 = 12 , BOARD_HEIGHT + 1 =11
+    *offset += sprintf(screen + *offset,
+                       "\033[%d;%dHPAUSED", y + 2, x + 3);
 
     *offset += sprintf(screen + *offset,
-                       "\033[%d;%dHPAUSED", y + 1, x + 7);
+                       "\033[%d;%dHr: RESUME", y + 5, x + 1);
 
     *offset += sprintf(screen + *offset,
-                       "\033[%d;%dHr : RESUME", y + 3, x + 3);
-
-    *offset += sprintf(screen + *offset,
-                       "\033[%d;%dHq : QUIT", y + 4, x + 3);
+                       "\033[%d;%dHq: QUIT", y + 7, x + 1);
 }
 
 void draw_gameover_box(char *screen, int *offset)
 {
-    int x = 6;
-    int y = 3;
+    int x = 1;
+    int y = 1;
 
-    draw_box(screen, offset, x, y, 24, 12);
+    draw_box(screen, offset, x, y, BOARD_WIDTH + 2, BOARD_HEIGHT + 1); // BOARD_WIDTH + 2 = 12 , BOARD_HEIGHT + 1 =11
     *offset += sprintf(screen + *offset,
-                       "\033[%d;%dHGAME OVER", y + 1, x + 6);
+                       "\033[%d;%dHGAMEOVER", y + 1, x + 2);
     *offset += sprintf(screen + *offset,
-                       "\033[%d;%dHSCORE : %04d", y + 3, x + 3, score);
+                       "\033[%d;%dHSCORE:%04d", y + 3, x + 1, score);
     *offset += sprintf(screen + *offset,
-                       "\033[%d;%dHRANKING", y + 5, x + 3);
+                       "\033[%d;%dHRANKING", y + 5, x + 2);
     *offset += sprintf(screen + *offset,
-                       "\033[%d;%dH1. %04d", y + 6, x + 3, high_scores[0]);
+                       "\033[%d;%dH1. %04d", y + 6, x + 2, high_scores[0]);
     *offset += sprintf(screen + *offset,
-                       "\033[%d;%dH2. %04d", y + 7, x + 3, high_scores[1]);
+                       "\033[%d;%dH2. %04d", y + 7, x + 2, high_scores[1]);
     *offset += sprintf(screen + *offset,
-                       "\033[%d;%dH3. %04d", y + 8, x + 3, high_scores[2]);
+                       "\033[%d;%dH3. %04d", y + 8, x + 2, high_scores[2]);
     *offset += sprintf(screen + *offset,
-                       "\033[%d;%dHr : RETRY", y + 10, x + 3);
+                       "\033[%d;%dHr: RETRY", y + 10, x + 2);
     *offset += sprintf(screen + *offset,
-                       "\033[%d;%dHq : QUIT", y + 11, x + 3);
+                       "\033[%d;%dHq: QUIT", y + 11, x + 2);
 }
 
 void show_cursor()
